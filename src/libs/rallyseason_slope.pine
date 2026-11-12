@@ -1,0 +1,50 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © oIKUo
+
+//@version=5
+indicator("RallySeason MA Slopes (%/hour)", overlay=false, precision=4)
+
+// MA parameters. Defaults match CrescentParam.
+quickWindow = input.int(12, minval=1, title="Quick Window", group="MA")
+fastWindow = input.int(24, minval=1, title="Fast Window", group="MA")
+middleWindow = input.int(48, minval=1, title="Middle Window", group="MA")
+slowWindow = input.int(240, minval=1, title="Slow Window", group="MA")
+
+// The threshold is applied to Fast MA by the Python RallySeason filter.
+slopeWindow = input.int(5, minval=2, title="Regression Window", group="Slope")
+slopeThreshold = input.float(0.2, minval=0.0, step=0.01, title="Fast Slope Threshold (%/hour)", group="Slope")
+
+showQuick = input.bool(true, title="Show Quick", group="Display")
+showFast = input.bool(true, title="Show Fast", group="Display")
+showMiddle = input.bool(true, title="Show Middle", group="Display")
+showSlow = input.bool(true, title="Show Slow", group="Display")
+
+// ta.linreg(source, length, 0) - ta.linreg(source, length, 1)
+// is the least-squares slope per bar. Normalize it by the regression-window
+// mean price and chart bar duration to match rallyseason.py (%/hour).
+regressionSlopePctPerHour(source, length) =>
+    slopePerBar = ta.linreg(source, length, 0) - ta.linreg(source, length, 1)
+    hoursPerBar = timeframe.in_seconds() / 3600.0
+    meanPrice = ta.sma(source, length)
+    valid = not na(slopePerBar) and not na(meanPrice) and meanPrice != 0.0 and hoursPerBar > 0.0
+    valid ? slopePerBar / hoursPerBar / math.abs(meanPrice) * 100.0 : na
+
+price = close
+maQuick = ta.sma(price, quickWindow)
+maFast = ta.sma(price, fastWindow)
+maMiddle = ta.sma(price, middleWindow)
+maSlow = ta.sma(price, slowWindow)
+
+quickSlope = regressionSlopePctPerHour(maQuick, slopeWindow)
+fastSlope = regressionSlopePctPerHour(maFast, slopeWindow)
+middleSlope = regressionSlopePctPerHour(maMiddle, slopeWindow)
+slowSlope = regressionSlopePctPerHour(maSlow, slopeWindow)
+
+plot(showQuick ? quickSlope : na, title="MA Quick Slope", color=color.red, linewidth=2)
+plot(showFast ? fastSlope : na, title="MA Fast Slope", color=color.green, linewidth=2)
+plot(showMiddle ? middleSlope : na, title="MA Middle Slope", color=color.blue, linewidth=2)
+plot(showSlow ? slowSlope : na, title="MA Slow Slope", color=color.purple, linewidth=2)
+
+hline(0.0, title="Zero", color=color.gray, linestyle=hline.style_solid)
+hline(slopeThreshold, title="Fast Positive Threshold", color=color.orange, linestyle=hline.style_dashed, linewidth=2)
+hline(-slopeThreshold, title="Fast Negative Threshold", color=color.orange, linestyle=hline.style_dashed, linewidth=2)

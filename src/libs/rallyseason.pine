@@ -1,0 +1,64 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © oIKUo
+
+//@version=5
+indicator("RallySeason", overlay=true)
+
+
+//var label = label.new(bar_index, H, style=label.style_none, text="")
+
+// parameters
+window1 = input.int(5, minval=1, title="Quick Window")
+window2 = input.int(12, minval=1, title="Fast Window")
+window3 = input.int(24, minval=1, title="Middle window")
+window4 = input.int(48, minval=1, title= "Slow window")
+rate = input.float(0.7, minval = 0.01, title= "rate")
+length = input.int(1, minval=1, title="delta length")
+threshold = input.float(0.1, minval = 0.0, title="threshold")
+signalOn = input.bool(true, title="signal on")
+
+period = timeframe.period
+
+k = 1.0
+if period == "D"
+    k := 24 * 60.0
+else
+    k := period == "1" ? 1.0: period == "3" ? 3.0: period == "5" ? 5.0: period == "15" ? 15.0: period == "30" ? 30.0: period == "60" ? 60.0: period == "240" ? 240.0 : 1.0 
+    
+PRICE = close
+MA1 = ta.sma(PRICE, window1)
+MA2 = ta.sma(PRICE, window2)
+MA3 = ta.sma(PRICE, window3)
+MA4 = ta.sma(PRICE, window4)
+
+plot(MA1, "quick", color=color.red, linewidth=2)
+plot(MA2, "fast", color= color.green, linewidth=2)
+plot(MA3, "middle", color= color.blue, linewidth=2)
+plot(MA4, "slow", color=color.purple, linewidth=2)
+
+
+DELTA2 = MA2 - MA2[length]
+DELTA3 = MA3 - MA3[length]
+DELTA4 = MA4 - MA4[length]
+
+w1 = MA2 - MA3
+w2 = MA3 - MA4
+r = math.abs(w1 / w2)
+p0 = w1 > 0 and w2 > 0
+p2 =  DELTA2 > threshold and DELTA3 > threshold and DELTA4 > threshold
+p3 = r > (1.0 - rate)  and r < (1 + rate) //DELTA2 > DELTA3 and DELTA3 > DELTA4
+positive = p0 and p2 and p3
+
+q0 = w1 < 0 and w2 < 0
+q2 = DELTA2 < -1.0 * threshold and DELTA3 < -1.0 * threshold and DELTA4 < -1.0 * threshold
+q3 = r > (1.0 - rate)  and r < (1 + rate) //DELTA2 < DELTA3 and DELTA3 < DELTA4
+negative = q0 and q2 and q3
+
+color bg_color = na
+if (signalOn)
+    if positive
+        bg_color := color.new(color.green, 70)
+    if negative
+        bg_color := color.new(color.red, 70)
+
+bgcolor(bg_color)
