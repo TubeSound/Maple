@@ -1,0 +1,4 @@
+numpy
+pandas
+python-dateutil
+bokeh>=3.0
