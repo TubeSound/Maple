@@ -1,0 +1,180 @@
+{
+  "symbol": "XAUUSD",
+  "requested_start": "2025-11-12T00:00:00+09:00",
+  "requested_end": "2026-11-12T00:00:00+09:00",
+  "first_candle_open": "2025-11-12T00:00:00+09:00",
+  "last_candle_open": "2026-11-11T23:59:00+09:00",
+  "train_end": "2026-08-31T00:00:00+09:00",
+  "test_start_after_embargo": "2026-08-31T01:00:00+09:00",
+  "window_minutes": 30,
+  "slide_minutes": 30,
+  "n_bins": 5,
+  "n_states": 4,
+  "raw_bars": 354366,
+  "valid_features": 338668,
+  "training_observations": 269165,
+  "training_sequences": 212,
+  "initializations": [
+    {
+      "seed": 42,
+      "train_log_likelihood": -625503.1293062,
+      "iterations": 58,
+      "hit_iteration_limit": false
+    },
+    {
+      "seed": 43,
+      "train_log_likelihood": -848404.5727661075,
+      "iterations": 28,
+      "hit_iteration_limit": false
+    },
+    {
+      "seed": 44,
+      "train_log_likelihood": -657232.3712000031,
+      "iterations": 100,
+      "hit_iteration_limit": true
+    }
+  ],
+  "percentile_classes": {
+    "n_bins": 5,
+    "edges": [
+      [
+        0.04044705786728743,
+        0.0741692374551695,
+        0.12019666817084891,
+        0.20118425175297772
+      ],
+      [
+        -0.3065926211937498,
+        -0.0830221309606164,
+        0.08805265042187364,
+        0.31523335738911284
+      ]
+    ],
+    "features": [
+      "distance_pct",
+      "slope_pct_per_hour"
+    ],
+    "symbol_rule": "W1_class * n_bins + slope_class (zero based)"
+  },
+  "horizons": {
+    "1": {
+      "hmm": {
+        "count": 69450,
+        "accuracy": 0.1847948164146868,
+        "log_loss": 2.297324533124873,
+        "brier": 0.86290891559084,
+        "changed_count": 12858,
+        "changed_accuracy": 0.0650178876963758
+      },
+      "observable_markov": {
+        "count": 69450,
+        "accuracy": 0.8148596112311015,
+        "log_loss": 0.7092702226616612,
+        "brier": 0.32178843146840486,
+        "changed_count": 12858,
+        "changed_accuracy": 0.0
+      },
+      "training_frequency": {
+        "count": 69450,
+        "accuracy": 0.04514038876889849,
+        "log_loss": 3.164382197471592,
+        "brier": 0.9565482597281505,
+        "changed_count": 12858,
+        "changed_accuracy": 0.018432104526364908
+      },
+      "persistence_accuracy": 0.8148596112311015,
+      "first_origin": "2026-08-31T08:00:00+09:00",
+      "last_origin": "2026-11-11T23:59:00+09:00"
+    },
+    "5": {
+      "hmm": {
+        "count": 69238,
+        "accuracy": 0.11942863745342153,
+        "log_loss": 2.9641710092031115,
+        "brier": 0.9354071218334566,
+        "changed_count": 45860,
+        "changed_accuracy": 0.05484081988661143
+      },
+      "observable_markov": {
+        "count": 69238,
+        "accuracy": 0.33764695687339324,
+        "log_loss": 1.903828241702904,
+        "brier": 0.7859550237924013,
+        "changed_count": 45860,
+        "changed_accuracy": 0.0
+      },
+      "training_frequency": {
+        "count": 69238,
+        "accuracy": 0.045278604234668826,
+        "log_loss": 3.1645415512842954,
+        "brier": 0.9565556985358007,
+        "changed_count": 45860,
+        "changed_accuracy": 0.022176188399476666
+      },
+      "persistence_accuracy": 0.33764695687339324,
+      "first_origin": "2026-08-31T08:00:00+09:00",
+      "last_origin": "2026-11-11T23:55:00+09:00"
+    },
+    "15": {
+      "hmm": {
+        "count": 68708,
+        "accuracy": 0.0675321651045002,
+        "log_loss": 3.164082277486907,
+        "brier": 0.9555390205986157,
+        "changed_count": 61955,
+        "changed_accuracy": 0.050294568638527964
+      },
+      "observable_markov": {
+        "count": 68708,
+        "accuracy": 0.13275018920649706,
+        "log_loss": 2.9112721845229927,
+        "brier": 0.9316203457852955,
+        "changed_count": 61955,
+        "changed_accuracy": 0.06364296666935679
+      },
+      "training_frequency": {
+        "count": 68708,
+        "accuracy": 0.04555510275368225,
+        "log_loss": 3.164998515151779,
+        "brier": 0.9565804397797147,
+        "changed_count": 61955,
+        "changed_accuracy": 0.032814139294649346
+      },
+      "persistence_accuracy": 0.09828549804971765,
+      "first_origin": "2026-08-31T08:00:00+09:00",
+      "last_origin": "2026-11-11T23:45:00+09:00"
+    },
+    "30": {
+      "hmm": {
+        "count": 67913,
+        "accuracy": 0.046058928334781264,
+        "log_loss": 3.1660422676522604,
+        "brier": 0.9565916987122449,
+        "changed_count": 64043,
+        "changed_accuracy": 0.04111300220164577
+      },
+      "observable_markov": {
+        "count": 67913,
+        "accuracy": 0.09466523346045676,
+        "log_loss": 3.200181862257537,
+        "brier": 0.9590123986743601,
+        "changed_count": 64043,
+        "changed_accuracy": 0.07401277266836344
+      },
+      "training_frequency": {
+        "count": 67913,
+        "accuracy": 0.046058928334781264,
+        "log_loss": 3.165541347368236,
+        "brier": 0.9566070680389139,
+        "changed_count": 64043,
+        "changed_accuracy": 0.04111300220164577
+      },
+      "persistence_accuracy": 0.05698467156509063,
+      "first_origin": "2026-08-31T08:00:00+09:00",
+      "last_origin": "2026-11-11T23:30:00+09:00"
+    }
+  },
+  "target": "future (W1 percentile class, signed Slope percentile class), not price returns",
+  "inference": "causal forward filtering; no future smoothing or Viterbi",
+  "caution": "Overlapping rolling windows create persistence. Hidden state IDs have no intrinsic meaning."
+}

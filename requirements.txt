@@ -2,3 +2,4 @@ numpy
 pandas
 python-dateutil
 bokeh>=3.0
+hmmlearn>=0.3.3,<0.4
