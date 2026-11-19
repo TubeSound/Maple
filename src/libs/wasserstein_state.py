@@ -9,6 +9,8 @@ from numbers import Integral
 
 import numpy as np
 
+from .technical import linear_regression
+
 
 @dataclass(frozen=True)
 class WassersteinState:
@@ -36,6 +38,9 @@ class WassersteinState:
         Stability alone does not establish a narrow or profitable range.
         Missing/nonfinite OHLC invalidates the comparison; timestamp gaps
         invalidate comparisons until the complete pair of windows is rebuilt.
+        `slope_pct_per_hour` fits the current window OHLC against minute
+        coordinates using technical.linear_regression, then scales by
+        60 * 100 / current window mean price. It requires only one window.
         """
         arrays = [np.asarray(candles[k], dtype=float)
                   for k in ("open", "high", "low", "close")]
@@ -67,7 +72,20 @@ class WassersteinState:
         distance = np.full(n, np.nan)
         pct = np.full(n, np.nan)
         state = np.full(n, np.nan)
+        slope_pct_per_hour = np.full(n, np.nan)
         w, s = self.window_minutes, self.slide_minutes
+        # OHLC share the same minute coordinate, not four sequential times.
+        # The slope is price/minute, normalized by the same window mean as W1.
+        x = np.repeat(np.arange(w, dtype=float), 4)
+        for i in range(w - 1, n):
+            begin = i - w + 1
+            if w < 2 or not finite[begin:i + 1].all():
+                continue
+            if not np.all(np.isclose(np.diff(epochs[begin:i + 1]), 60, rtol=0, atol=1e-6)):
+                continue
+            values = prices[begin:i + 1].reshape(-1)
+            slope, _ = linear_regression(x, values)
+            slope_pct_per_hour[i] = slope * 60 * 100 / np.mean(values)
         for i in range(w + s - 1, n):
             begin = i - w - s + 1
             if not finite[begin:i + 1].all():
@@ -82,4 +100,5 @@ class WassersteinState:
             pct[i] = 100 * distance[i] / np.mean(current)
             if self.threshold is not None:
                 state[i] = float(distance[i] > self.threshold)
-        return {"distance": distance, "distance_pct": pct, "state": state}
+        return {"distance": distance, "distance_pct": pct, "state": state,
+                "slope_pct_per_hour": slope_pct_per_hour}

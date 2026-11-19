@@ -4,7 +4,12 @@ Created on Thu Dec 14 19:59:00 2023
 
 @author: docs9
 """
-import MetaTrader5 as mt5
+try:
+    import MetaTrader5 as mt5
+except ModuleNotFoundError as exc:
+    if exc.name != "MetaTrader5":
+        raise
+    mt5 = None  # Offline technical indicators do not require the MT5 SDK.
 
 
 HOLD = 0
@@ -47,7 +52,7 @@ class TimeFrame:
                     H1: mt5.TIMEFRAME_H1,
                     H4: mt5.TIMEFRAME_H4,
                     D1: mt5.TIMEFRAME_D1,
-                    W1: mt5.TIMEFRAME_W1}
+                    W1: mt5.TIMEFRAME_W1} if mt5 is not None else {}
         
     minutes = { M1: 1,
                 M5: 5,
@@ -62,6 +67,8 @@ class TimeFrame:
             
     @staticmethod 
     def const(timeframe_str: str):
+        if mt5 is None:
+            raise RuntimeError("MetaTrader5 must be installed to use MT5 timeframe constants")
         return TimeFrame.timeframes[timeframe_str]
     
     @staticmethod

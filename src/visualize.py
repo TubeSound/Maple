@@ -23,27 +23,29 @@ def build_chart(candles, result, symbol, model):
     price = CandleChart(f"{symbol} M1 | JST candle close time", None, 500, times)
     price.fig.yaxis.axis_label = "Price"
     price.plot_candle(*(candles[k] for k in ("open", "high", "low", "close")))
-    raw = TimeChart("Sliding OHLC Wasserstein-1", None, 240, times, ylabel="W1 (price units)")
-    raw.line(result["distance"], color="#2266bb", line_width=2)
+    slope = TimeChart(f"{model.window_minutes}-minute OHLC linear regression slope", None, 240,
+                      times, ylabel="Slope (%/hour)")
+    slope.line(result["slope_pct_per_hour"], color="#2266bb", line_width=2)
+    slope.hline(0, "gray")
     pct = TimeChart("Wasserstein-1 / current window mean price", None, 180, times, ylabel="W1 (%)")
     pct.line(result["distance_pct"], color="#8a44aa", line_width=2)
     price.fig.x_range = Range1d(-1, len(times))
-    for chart in (raw, pct):
+    for chart in (slope, pct):
         chart.fig.x_range = price.fig.x_range
     if model.threshold is not None:
-        raw.hline(model.threshold, "orange")
         stable = result["state"] == 0
         # Shade contiguous stable runs rather than drawing thousands of spans.
         boundaries = np.diff(np.r_[False, stable, False].astype(int))
         for left, right in zip(np.flatnonzero(boundaries == 1), np.flatnonzero(boundaries == -1)):
-            for chart in (price, raw):
+            for chart in (price, pct):
                 chart.fig.add_layout(BoxAnnotation(left=float(left - .5), right=float(right - .5),
                                                   fill_color="gold", fill_alpha=.15, line_alpha=0))
     note = Div(text=(f"<b>Window: {model.window_minutes} min; comparison lag: {model.slide_minutes} min; "
                      "4 equally weighted OHLC prices/bar.</b> All times JST, labelled at candle close. "
                      "Gaps and incomplete windows have no distance. "
+                     "Slope = OHLC regression price/minute × 60 / window mean price × 100 (%/hour). "
                      "Yellow (optional): W1 ≤ threshold; distribution stability is a range candidate, not a trade signal."))
-    return column(note, price.fig, raw.fig, pct.fig, sizing_mode="stretch_width")
+    return column(note, price.fig, slope.fig, pct.fig, sizing_mode="stretch_width")
 
 
 def main(argv=None):
@@ -52,8 +54,8 @@ def main(argv=None):
     parser.add_argument("--start", default="2026-11-12", help="JST candle-open start (inclusive)")
     parser.add_argument("--end", default="2026-11-13", help="JST cutoff (exclusive); only closed candles")
     parser.add_argument("--data-root", type=Path, default=ROOT / "MarketData" / "axiory")
-    parser.add_argument("--window-minutes", type=int, default=15)
-    parser.add_argument("--slide-minutes", type=int, default=1, help="Comparison lag; evaluated every minute")
+    parser.add_argument("--window-minutes", type=int, default=30)
+    parser.add_argument("--slide-minutes", type=int, default=30, help="Comparison lag; evaluated every minute")
     parser.add_argument("--threshold", type=float, help="Optional W1 threshold in raw price units")
     parser.add_argument("--output", type=Path, help="HTML output path")
     parser.add_argument("--show", action="store_true", help="Also open browser")

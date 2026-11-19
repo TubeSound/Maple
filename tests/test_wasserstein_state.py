@@ -17,6 +17,31 @@ def candles(close):
 
 
 class WassersteinTests(unittest.TestCase):
+    def test_hourly_ohlc_slope(self):
+        # Exactly 2 price units/minute; OHLC offsets average to zero.
+        data = candles(1000 + 2 * np.arange(80))
+        model = WassersteinState(30, 30)
+        out = model.calc(data)
+        self.assertTrue(np.isnan(out["slope_pct_per_hour"][:29]).all())
+        expected = 2 * 60 * 100 / (1000 + 2 * (np.arange(29, 80) - 14.5))
+        np.testing.assert_allclose(out["slope_pct_per_hour"][29:], expected)
+        self.assertTrue(np.isnan(out["distance"][:59]).all())
+        flat = model.calc(candles([1000.] * 60))
+        np.testing.assert_allclose(flat["slope_pct_per_hour"][29:], 0, atol=1e-10)
+        down = model.calc(candles(1000 - 2 * np.arange(80)))
+        self.assertTrue((down["slope_pct_per_hour"][29:] < 0).all())
+
+    def test_slope_gap_and_future_independence(self):
+        data = candles(1000 + np.arange(100))
+        model = WassersteinState(30, 30)
+        prefix = {k: v[:70] for k, v in data.items()}
+        np.testing.assert_allclose(model.calc(prefix)["slope_pct_per_hour"],
+                                   model.calc(data)["slope_pct_per_hour"][:70])
+        data["jst"][40:] += timedelta(minutes=1)
+        slope = model.calc(data)["slope_pct_per_hour"]
+        self.assertTrue(np.isnan(slope[40:69]).all())
+        self.assertTrue(np.isfinite(slope[69]))
+
     def test_stationary_and_shift(self):
         steady = WassersteinState(threshold=0).calc(candles([100.] * 25))
         self.assertTrue(np.isnan(steady["distance"][:15]).all())
